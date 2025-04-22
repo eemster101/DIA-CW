@@ -39,6 +39,8 @@ class MinigridFeaturesExtractor(BaseFeaturesExtractor):
 
 def train_agent():
     # Environment setup with proper wrapper
+    print("Using device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
+
     env = WarehouseEnv(render_mode="rgb_array")
     env = RGBImgObsWrapper(env)
     
@@ -60,6 +62,7 @@ def train_agent():
         gae_lambda=0.95,
         clip_range=0.2,
         ent_coef=0.01,
+        device="cuda" if torch.cuda.is_available() else "cpu"
     )
     
     model.learn(total_timesteps=100000)
@@ -69,6 +72,7 @@ def train_agent():
 def evaluate_agent():
     model = PPO.load("warehouse_ppo_agent")
     env = WarehouseEnv(render_mode="human")
+    env = RGBImgObsWrapper(env)
     
     obs, _ = env.reset()
     for _ in range(1000):
@@ -83,4 +87,4 @@ def evaluate_agent():
 
 if __name__ == "__main__":
     train_agent()
-    # evaluate_agent()  # Uncomment to evaluate after training
+    #evaluate_agent()  # Uncomment to evaluate after training

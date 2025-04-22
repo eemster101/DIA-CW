@@ -97,6 +97,8 @@ class WarehouseEnv(MiniGridEnv):
         self.door_unlocked = False
 
     def step(self, action):
+        
+
         reward = self.step_penalty
         terminated = False
         truncated = False
@@ -105,6 +107,7 @@ class WarehouseEnv(MiniGridEnv):
         # Get the position in front of the agent before moving
         fwd_pos = self.front_pos
         fwd_cell = self.grid.get(*fwd_pos)
+        print(f"Step: {self.step_count}, Pos: {self.agent_pos}, Dir: {self.agent_dir}, Action: {action}, Front: {fwd_cell}")
         
         # Rotate left
         if action == self.actions.left:
