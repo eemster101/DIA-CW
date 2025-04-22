@@ -86,5 +86,5 @@ def evaluate_agent():
     env.close()
 
 if __name__ == "__main__":
-    train_agent()
-    #evaluate_agent()  # Uncomment to evaluate after training
+    #train_agent()
+    evaluate_agent()  # Uncomment to evaluate after training
