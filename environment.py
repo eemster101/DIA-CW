@@ -6,6 +6,24 @@ from minigrid.core.mission import MissionSpace
 from minigrid.core.world_object import Door, Goal, Key, Wall, Lava  # Added Lava import
 from minigrid.manual_control import ManualControl
 from minigrid.minigrid_env import MiniGridEnv
+from minigrid.core.world_object import WorldObj
+import numpy as np
+from PIL import Image
+
+class CustomBox(Key):
+    def render(self, img):
+        # Load your own key image (ensure it's 32x32 or resized)
+        key_image = Image.open("assets/box.png").resize((img.shape[1], img.shape[0]))
+        key_image = key_image.convert("RGB")
+        img[:, :, :] = np.asarray(key_image)
+
+class CustomSpill(Lava):
+    def render(self, img):
+        # Load your custom lava image
+        lava_image = Image.open("assets/stain.png").resize((img.shape[1], img.shape[0]))
+        lava_image = lava_image.convert("RGB")
+        img[:, :, :] = np.asarray(lava_image)
+
 
 class WarehouseEnv(MiniGridEnv):
     def __init__(
@@ -58,14 +76,14 @@ class WarehouseEnv(MiniGridEnv):
         
         # Place the door and key
         self.grid.set(5, 6, Door(COLOR_NAMES[0], is_locked=True))
-        self.grid.set(3, 6, Key(COLOR_NAMES[0]))
+        self.grid.set(3, 6, CustomBox(COLOR_NAMES[0]))
 
         # Place a goal square in the bottom-right corner
         self.put_obj(Goal(), width - 2, height - 2)
 
         # Add lava tiles (customize positions as needed)
-        self.grid.set(4, 2, Lava())
-        self.grid.set(7, 5, Lava())
+        self.grid.set(4, 2, CustomSpill())
+        self.grid.set(7, 5, CustomSpill())
 
         # Place the agent
         if self.agent_start_pos is not None:
