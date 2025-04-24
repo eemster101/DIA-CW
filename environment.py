@@ -31,9 +31,11 @@ class WarehouseEnv(MiniGridEnv):
         size=10,
         agent_start_pos=(2, 3),
         agent_start_dir=0,
+        layout_id=0,  # <-- NEW PARAM
         max_steps: int | None = None,
         **kwargs,
     ):
+        self.layout_id = layout_id  # <-- STORE IT
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
 
@@ -45,7 +47,6 @@ class WarehouseEnv(MiniGridEnv):
         super().__init__(
             mission_space=mission_space,
             grid_size=size,
-            # Set this to True for maximum speed
             see_through_walls=True,
             max_steps=max_steps,
             **kwargs,
@@ -55,20 +56,71 @@ class WarehouseEnv(MiniGridEnv):
         self.reward_pickup_key = 1.0
         self.reward_unlock_door = 1.0
         self.reward_reach_goal = 10.0
-        self.step_penalty = -0.01
+        self.step_penalty = -0.02
         self.wrong_door_penalty = -0.5
-        self.lava_penalty = -0.5  # Penalty for stepping in lava
+        self.lava_penalty = -5.0
+
+    def _gen_grid(self, width, height):
+        if self.layout_id == 0:
+            self.layout0(width, height)
+        elif self.layout_id == 1:
+            self.layout1(width, height)
+        elif self.layout_id == 2:
+            self.layout2(width, height)
+        else:
+            raise ValueError(f"Unknown layout_id: {self.layout_id}")
+
 
     @staticmethod
     def _gen_mission():
         return "Navigate to the goal"
+    
+    def layout0(self, width, height):
+        width = 5
+        height = 5
 
-    def _gen_grid(self, width, height):
+        self.grid = Grid(width, height)
+    
+        self.grid.wall_rect(0, 0, width, height)
+
+        self.put_obj(Goal(), width - 2, height - 2)
+
+
+        self.agent_pos = (1, 1)
+        self.agent_dir = 0
+
+        self.has_key = False
+        self.door_unlocked = False
+        self.prev_dist = np.linalg.norm(np.array(self.agent_pos) - np.array([width - 2, height - 2]))
+
+    def layout1(self, width, height):
+        width = 6
+        height = 6
+
+        self.grid = Grid(width, height)
+    
+        self.grid.wall_rect(0, 0, width, height)
+
+        self.put_obj(Goal(), width - 2, height - 2)
+
+        self.grid.set(4, 3, CustomSpill())
+
+
+        self.agent_pos = (1, 1)
+        self.agent_dir = 0
+
+        self.has_key = False
+        self.door_unlocked = False
+        self.prev_dist = np.linalg.norm(np.array(self.agent_pos) - np.array([width - 2, height - 2]))
+    
+
+    def layout2(self, width, height):
         # Create an empty grid
         self.grid = Grid(width, height)
 
         # Generate the surrounding walls
         self.grid.wall_rect(0, 0, width, height)
+        
 
         # Generate vertical separation wall
         for i in range(0, height):
@@ -95,9 +147,10 @@ class WarehouseEnv(MiniGridEnv):
         self.mission = "Navigate to the goal"
         self.has_key = False
         self.door_unlocked = False
+        self.prev_dist = np.linalg.norm(np.array(self.agent_pos) - np.array([width - 2, height - 2]))
 
     def step(self, action):
-        
+
 
         reward = self.step_penalty
         terminated = False
@@ -107,7 +160,6 @@ class WarehouseEnv(MiniGridEnv):
         # Get the position in front of the agent before moving
         fwd_pos = self.front_pos
         fwd_cell = self.grid.get(*fwd_pos)
-        print(f"Step: {self.step_count}, Pos: {self.agent_pos}, Dir: {self.agent_dir}, Action: {action}, Front: {fwd_cell}")
         
         # Rotate left
         if action == self.actions.left:
@@ -160,8 +212,9 @@ class WarehouseEnv(MiniGridEnv):
                     self.agent_pos = fwd_pos
                 
             # Check for goal after moving
-            new_fwd_cell = self.grid.get(*self.front_pos)
-            if new_fwd_cell and new_fwd_cell.type == "goal":
+            # Check if agent is standing on the goal tile
+            current_cell = self.grid.get(*self.agent_pos)
+            if current_cell and current_cell.type == "goal":
                 reward += self.reward_reach_goal
                 terminated = True
 
@@ -172,12 +225,25 @@ class WarehouseEnv(MiniGridEnv):
         if self.step_count >= self.max_steps:
             truncated = True
             
+        if fwd_cell and fwd_cell.type == "key":
+            reward += 0.2  # Small reward for approaching key
+                    
+        # Safe door checking:
+        current_cell = self.grid.get(*self.agent_pos)
+        if self.has_key and current_cell is not None and current_cell.type == "door":
+            reward += 0.3  # Reward for approaching door with key
+                    
+        # Distance-based reward
+        goal_pos = np.array([self.width-2, self.height-2])
+        dist_to_goal = np.linalg.norm(np.array(self.agent_pos) - goal_pos)
+        reward += 0.01 * (self.prev_dist - dist_to_goal)
+        self.prev_dist = dist_to_goal
+        
+
         return obs, reward, terminated, truncated, info
 
 def main():
-    env = WarehouseEnv(render_mode="human")
-
-    # enable manual control for testing
+    env = WarehouseEnv(render_mode="human", layout_id=1)  # Change to 0, 1, or 2
     manual_control = ManualControl(env, seed=42)
     manual_control.start()
 
