@@ -41,7 +41,7 @@ def train_agent():
     print("Using device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
     
     # Train progressively on harder layouts
-    for layout_id in [0, 1]:
+    for layout_id in [0]:
         env = WarehouseEnv(render_mode="rgb_array", layout_id=layout_id)
         env = RGBImgObsWrapper(env)
         
@@ -68,7 +68,7 @@ def train_agent():
 
 def evaluate_agent():
     model = PPO.load("warehouse_ppo_agent")
-    env = WarehouseEnv(render_mode="human", layout_id=1)
+    env = WarehouseEnv(render_mode="human", layout_id=0)
     env = RGBImgObsWrapper(env)  # This wraps the original env
     
     obs, _ = env.reset()

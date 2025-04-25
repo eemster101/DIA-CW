@@ -56,6 +56,7 @@ class WarehouseEnv(MiniGridEnv):
         self.reward_pickup_key = 1.0
         self.reward_unlock_door = 1.0
         self.reward_reach_goal = 10.0
+        self.wall_penalty = -1.0
         self.step_penalty = -0.02
         self.wrong_door_penalty = -0.5
         self.lava_penalty = -5.0
@@ -76,8 +77,8 @@ class WarehouseEnv(MiniGridEnv):
         return "Navigate to the goal"
     
     def layout0(self, width, height):
-        width = 5
-        height = 5
+        width = 6
+        height = 6
 
         self.grid = Grid(width, height)
     
@@ -151,7 +152,6 @@ class WarehouseEnv(MiniGridEnv):
 
     def step(self, action):
 
-
         reward = self.step_penalty
         terminated = False
         truncated = False
@@ -179,6 +179,9 @@ class WarehouseEnv(MiniGridEnv):
                 info["stepped_in_lava"] = True
                 # Still allow movement into lava
                 self.agent_pos = fwd_pos
+            elif fwd_cell and fwd_cell.type == "wall":
+                reward += self.wall_penalty
+                info["Hitting_a_wall"] = True
             else:
                 # Check for key before moving (only if not stepping into lava)
                 if fwd_cell and fwd_cell.type == "key" and fwd_cell.color == COLOR_NAMES[0]:
@@ -227,7 +230,8 @@ class WarehouseEnv(MiniGridEnv):
             
         if fwd_cell and fwd_cell.type == "key":
             reward += 0.2  # Small reward for approaching key
-                    
+        
+             
         # Safe door checking:
         current_cell = self.grid.get(*self.agent_pos)
         if self.has_key and current_cell is not None and current_cell.type == "door":
@@ -243,7 +247,7 @@ class WarehouseEnv(MiniGridEnv):
         return obs, reward, terminated, truncated, info
 
 def main():
-    env = WarehouseEnv(render_mode="human", layout_id=1)  # Change to 0, 1, or 2
+    env = WarehouseEnv(render_mode="human", layout_id=0)  # Change to 0, 1, or 2
     manual_control = ManualControl(env, seed=42)
     manual_control.start()
 
