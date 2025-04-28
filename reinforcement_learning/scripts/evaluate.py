@@ -112,7 +112,7 @@ if __name__ == "__main__":
     return_per_episode = utils.synthesize(logs["return_per_episode"])
     num_frames_per_episode = utils.synthesize(logs["num_frames_per_episode"])
 
-    print("F {} | FPS {:.0f} | D {} | R:μσmM {:.2f} {:.2f} {:.2f} {:.2f} | F:μσmM {:.1f} {:.1f} {} {}"
+    print("F {} | FPS {:.0f} | D {} | R:mean|dev|min|max {:.2f} {:.2f} {:.2f} {:.2f} | F:mean|dev|min|max {:.1f} {:.1f} {} {}"
           .format(num_frames, fps, duration,
                   *return_per_episode.values(),
                   *num_frames_per_episode.values()))

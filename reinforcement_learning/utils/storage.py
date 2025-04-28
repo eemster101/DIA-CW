@@ -47,16 +47,20 @@ def get_model_state(model_dir):
     return get_status(model_dir)["model_state"]
 
 
-
 def get_txt_logger(model_dir):
-    log_file = os.path.join(model_dir, "log.txt")
-    logger = logging.getLogger()
-    handler = logging.FileHandler(log_file, encoding='utf-8')
-    handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    return logger
+    path = os.path.join(model_dir, "log.txt")
+    utils.create_folders_if_necessary(path)
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        handlers=[
+            logging.FileHandler(filename=path),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    return logging.getLogger()
 
 
 def get_csv_logger(model_dir):
