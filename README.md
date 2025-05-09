@@ -38,10 +38,10 @@ python -m scripts.train --algo a2c --env MiniGrid-Warehouse --layout 2 --model m
 ##### --save-interval: The interval at which to save the model.
 ##### --frames: The number of frames to train the agent.
 
-python -m scripts.evaluate --env MiniGrid-Warehouse --model modela2c1 for example
+python -m scripts.evaluate --env MiniGrid-Warehouse --layout 2 --model modela2c1 for example
 - Model only can be changed
 
-python -m scripts.visualize --env MiniGrid-Warehouse --model modela2c1 for example
+python -m scripts.visualize --env MiniGrid-Warehouse --layout 2 --model modela2c1 for example
 
 ## TensorBoard
 For training analysis and to view the training progress, run TensorBoard:
