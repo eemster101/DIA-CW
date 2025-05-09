@@ -1,4 +1,4 @@
-from environment1 import WarehouseEnv
+from environment import WarehouseEnv
 from minigrid.wrappers import RGBImgPartialObsWrapper
 from minigrid.core.actions import Actions
 import time
